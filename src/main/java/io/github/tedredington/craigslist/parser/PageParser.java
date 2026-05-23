@@ -12,47 +12,49 @@ import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Glue between {@link ResultRowParser} and {@link io.github.tedredington.craigslist.model.SearchPage}.
- *  Tolerates individual malformed rows (skip + warn-log) but throws
- *  {@link CraigslistParsingException} when the page itself is unrecognizable. */
+/**
+ * Glue between {@link ResultRowParser} and {@link
+ * io.github.tedredington.craigslist.model.SearchPage}. Tolerates individual malformed rows (skip +
+ * warn-log) but throws {@link CraigslistParsingException} when the page itself is unrecognizable.
+ */
 public final class PageParser {
 
-    private static final Logger LOG = LoggerFactory.getLogger(PageParser.class);
+  private static final Logger LOG = LoggerFactory.getLogger(PageParser.class);
 
-    public static SearchPage parse(Document doc, ResultRowParser parser, int offset, URI sourceUri) {
-        Elements rows = parser.selectRows(doc);
-        if (rows.isEmpty() && !looksLikeEmptyResultsPage(doc)) {
-            throw new CraigslistParsingException(
-                    "could not locate any result rows on page", sourceUri, doc.html());
-        }
-        List<Listing> listings = new ArrayList<>(rows.size());
-        for (Element row : rows) {
-            try {
-                listings.add(parser.parseRow(row));
-            } catch (RuntimeException ex) {
-                LOG.warn(
-                        "skipping malformed row at {}: {} (row html={})",
-                        sourceUri,
-                        ex.getMessage(),
-                        truncate(row.outerHtml()));
-            }
-        }
-        int total = parser.parseTotalCount(doc);
-        if (total < 0) {
-            total = offset + listings.size();
-        }
-        boolean hasNext = !listings.isEmpty() && (offset + listings.size()) < total;
-        return new SearchPage(listings, offset, total, hasNext);
+  public static SearchPage parse(Document doc, ResultRowParser parser, int offset, URI sourceUri) {
+    Elements rows = parser.selectRows(doc);
+    if (rows.isEmpty() && !looksLikeEmptyResultsPage(doc)) {
+      throw new CraigslistParsingException(
+          "could not locate any result rows on page", sourceUri, doc.html());
     }
-
-    private static boolean looksLikeEmptyResultsPage(Document doc) {
-        return doc.selectFirst(".no-results, .noresults, .cl-no-results") != null
-                || doc.text().toLowerCase().contains("no results");
+    List<Listing> listings = new ArrayList<>(rows.size());
+    for (Element row : rows) {
+      try {
+        listings.add(parser.parseRow(row));
+      } catch (RuntimeException ex) {
+        LOG.warn(
+            "skipping malformed row at {}: {} (row html={})",
+            sourceUri,
+            ex.getMessage(),
+            truncate(row.outerHtml()));
+      }
     }
-
-    private static String truncate(String s) {
-        return s.length() <= 200 ? s : s.substring(0, 200) + "…";
+    int total = parser.parseTotalCount(doc);
+    if (total < 0) {
+      total = offset + listings.size();
     }
+    boolean hasNext = !listings.isEmpty() && (offset + listings.size()) < total;
+    return new SearchPage(listings, offset, total, hasNext);
+  }
 
-    private PageParser() {}
+  private static boolean looksLikeEmptyResultsPage(Document doc) {
+    return doc.selectFirst(".no-results, .noresults, .cl-no-results") != null
+        || doc.text().toLowerCase().contains("no results");
+  }
+
+  private static String truncate(String s) {
+    return s.length() <= 200 ? s : s.substring(0, 200) + "…";
+  }
+
+  private PageParser() {}
 }
