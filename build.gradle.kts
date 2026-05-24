@@ -5,7 +5,7 @@ plugins {
     alias(libs.plugins.maven.publish)
 }
 
-group = "io.github.tedredington"
+group = "io.github.tedtedted"
 version = "0.1.0-SNAPSHOT"
 description = "A Java 21 client for searching Craigslist listings."
 
@@ -95,7 +95,7 @@ mavenPublishing {
     pom {
         name.set("java-craigslist")
         description.set(project.description)
-        url.set("https://github.com/tedredington/java-craigslist")
+        url.set("https://github.com/tedtedted/java-craigslist")
         licenses {
             license {
                 name.set("MIT License")
@@ -104,14 +104,14 @@ mavenPublishing {
         }
         developers {
             developer {
-                id.set("tedredington")
+                id.set("tedtedted")
                 name.set("Ted Redington")
             }
         }
         scm {
-            url.set("https://github.com/tedredington/java-craigslist")
-            connection.set("scm:git:git://github.com/tedredington/java-craigslist.git")
-            developerConnection.set("scm:git:ssh://git@github.com/tedredington/java-craigslist.git")
+            url.set("https://github.com/tedtedted/java-craigslist")
+            connection.set("scm:git:git://github.com/tedtedted/java-craigslist.git")
+            developerConnection.set("scm:git:ssh://git@github.com/tedtedted/java-craigslist.git")
         }
     }
 }

@@ -9,7 +9,7 @@ Gradle (Kotlin DSL):
 
 ```kotlin
 dependencies {
-    implementation("io.github.tedredington:java-craigslist:0.1.0")
+    implementation("io.github.tedtedted:java-craigslist:0.1.0")
 }
 ```
 
@@ -17,7 +17,7 @@ Maven:
 
 ```xml
 <dependency>
-    <groupId>io.github.tedredington</groupId>
+    <groupId>io.github.tedtedted</groupId>
     <artifactId>java-craigslist</artifactId>
     <version>0.1.0</version>
 </dependency>
@@ -26,8 +26,8 @@ Maven:
 ## Quick start
 
 ```java
-import io.github.tedredington.craigslist.*;
-import io.github.tedredington.craigslist.model.*;
+import io.github.tedtedted.craigslist.*;
+import io.github.tedtedted.craigslist.model.*;
 
 Craigslist cl = Craigslist.create();
 
