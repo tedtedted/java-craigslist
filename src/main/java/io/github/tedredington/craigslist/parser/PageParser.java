@@ -28,17 +28,34 @@ public final class PageParser {
           "could not locate any result rows on page", sourceUri, doc.html());
     }
     List<Listing> listings = new ArrayList<>(rows.size());
+    int skipped = 0;
     for (Element row : rows) {
       try {
         listings.add(parser.parseRow(row));
       } catch (RuntimeException ex) {
-        LOG.warn(
+        skipped++;
+        // Per-row failures are common when the DOM has minor variations; log at DEBUG so
+        // they don't flood normal output. The summary below catches widespread failures.
+        LOG.debug(
             "skipping malformed row at {}: {} (row html={})",
             sourceUri,
             ex.getMessage(),
             truncate(row.outerHtml()));
       }
     }
+    if (skipped > 0) {
+      double skipRatio = (double) skipped / rows.size();
+      // If we're losing more than half the rows on a page, the DOM has likely shifted —
+      // emit one WARN per page so operators notice without spamming per-row.
+      if (skipRatio > 0.5) {
+        LOG.warn(
+            "skipped {}/{} rows ({}%) at {} — Craigslist DOM may have changed",
+            skipped, rows.size(), Math.round(skipRatio * 100), sourceUri);
+      } else {
+        LOG.debug("skipped {}/{} rows at {}", skipped, rows.size(), sourceUri);
+      }
+    }
+    LOG.debug("parsed {} listings from {}", listings.size(), sourceUri);
     int total = parser.parseTotalCount(doc);
     if (total < 0) {
       total = offset + listings.size();

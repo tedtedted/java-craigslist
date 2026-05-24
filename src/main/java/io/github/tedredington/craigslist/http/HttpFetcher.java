@@ -86,6 +86,7 @@ public final class HttpFetcher {
             sleep(sleep, uri);
             continue;
           }
+          LOG.error("rate-limited (HTTP 429) at {} after {} attempts — giving up", uri, attempt);
           throw new CraigslistRateLimitException(uri, resp.body(), attempt, retryAfter);
         }
         if (status >= 500 && status < 600) {
@@ -95,14 +96,18 @@ public final class HttpFetcher {
             sleep(sleep, uri);
             continue;
           }
+          LOG.error("HTTP {} at {} after {} attempts — giving up", status, uri, attempt);
           throw new CraigslistServerException(status, uri, resp.body(), attempt);
         }
         if (status == 403) {
+          LOG.error("blocked by Craigslist (HTTP 403) at {} — rotate UA or slow down", uri);
           throw new CraigslistBlockedException(uri, resp.body(), attempt);
         }
         if (status == 404) {
+          LOG.warn("not found (HTTP 404) at {} — bad site/area/category combo?", uri);
           throw new CraigslistNotFoundException(uri, resp.body(), attempt);
         }
+        LOG.error("unexpected HTTP {} at {}", status, uri);
         throw new CraigslistHttpException(status, uri, resp.body(), attempt);
       } catch (HttpTimeoutException e) {
         if (attempt < retryPolicy.maxAttempts()) {
@@ -111,6 +116,7 @@ public final class HttpFetcher {
           sleep(sleep, uri);
           continue;
         }
+        LOG.error("timeout at {} after {} attempts — giving up", uri, attempt);
         throw new CraigslistTimeoutException("request timed out", uri, e);
       } catch (IOException e) {
         lastIo = e;
@@ -120,6 +126,7 @@ public final class HttpFetcher {
           sleep(sleep, uri);
           continue;
         }
+        LOG.error("I/O failure at {} after {} attempts: {}", uri, attempt, e.toString());
         throw new CraigslistNetworkException("network I/O error", uri, e);
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();

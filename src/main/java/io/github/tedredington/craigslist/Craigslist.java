@@ -8,6 +8,8 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.time.Duration;
 import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Entry point to the library. Construct with {@link #create()} for sensible defaults or with {@link
@@ -28,6 +30,8 @@ import java.util.Optional;
  * }</pre>
  */
 public final class Craigslist implements AutoCloseable {
+
+  private static final Logger LOG = LoggerFactory.getLogger(Craigslist.class);
 
   /** Default User-Agent. Override via {@link Builder#userAgent(String)}. */
   public static final String DEFAULT_USER_AGENT =
@@ -65,6 +69,7 @@ public final class Craigslist implements AutoCloseable {
 
   @Override
   public void close() {
+    LOG.info("closing Craigslist client and releasing HttpClient");
     httpClient.close();
   }
 
@@ -144,6 +149,14 @@ public final class Craigslist implements AutoCloseable {
               userAgent,
               requestTimeout);
       UriBuilder uriBuilder = new UriBuilder(Optional.ofNullable(baseUriOverride));
+      LOG.info(
+          "initialized Craigslist client (ua=\"{}\", requestTimeout={}, maxRetries={},"
+              + " minDelay={}, baseUriOverride={})",
+          userAgent,
+          requestTimeout,
+          retryPolicy.maxAttempts(),
+          minDelayBetweenRequests,
+          baseUriOverride);
       return new Craigslist(client, fetcher, uriBuilder);
     }
   }

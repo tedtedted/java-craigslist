@@ -20,6 +20,8 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import org.jsoup.nodes.Document;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Parent of every category query class. Each subclass implements {@link Iterable
@@ -37,6 +39,8 @@ public abstract sealed class CraigslistBase implements Iterable<Listing>
         CraigslistJobs,
         CraigslistResumes,
         CraigslistServices {
+
+  private static final Logger LOG = LoggerFactory.getLogger(CraigslistBase.class);
 
   private final Craigslist client;
   private final Site site;
@@ -128,7 +132,19 @@ public abstract sealed class CraigslistBase implements Iterable<Listing>
 
   private SearchPage fetchPage(int offset) {
     URI uri = uriForOffset(offset);
+    LOG.debug("fetching {} page offset={} uri={}", getClass().getSimpleName(), offset, uri);
     Document doc = client.fetcher().getDocument(uri);
-    return PageParser.parse(doc, parser(), offset, uri);
+    SearchPage page = PageParser.parse(doc, parser(), offset, uri);
+    if (offset == 0) {
+      LOG.info(
+          "{} site={} area={} category={} → first page returned {} listings (totalCount={})",
+          getClass().getSimpleName(),
+          site.subdomain(),
+          area.map(a -> a.code()).orElse("-"),
+          category.code(),
+          page.listings().size(),
+          page.totalCount());
+    }
+    return page;
   }
 }

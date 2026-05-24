@@ -20,6 +20,7 @@ java {
 sourceSets {
     create("examples") {
         java.srcDir("src/examples/java")
+        resources.srcDir("src/examples/resources")
         compileClasspath += sourceSets.main.get().output
         runtimeClasspath += sourceSets.main.get().output
     }
