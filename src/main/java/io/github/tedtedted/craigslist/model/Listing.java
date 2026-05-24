@@ -1,11 +1,13 @@
 package io.github.tedtedted.craigslist.model;
 
+import java.lang.reflect.RecordComponent;
 import java.net.URI;
 import java.time.OffsetDateTime;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalInt;
+import java.util.StringJoiner;
 
 /**
  * A single Craigslist listing. The fields populated depend on whether the listing came from a
@@ -48,18 +50,42 @@ public record Listing(
   }
 
   /**
-   * Compact, human-readable rendering suitable for {@code System.out.println}. Optional fields
-   * (price, location) are elided when absent. Use the record accessors directly when you need
-   * structured data.
+   * Renders this listing in the standard Java record format ({@code Listing[name=value, …]}) but
+   * omits components whose value is an empty {@link Optional}, an empty {@link OptionalInt}, or an
+   * empty {@link Map}, and unwraps present {@code Optional}/{@code OptionalInt} values so they
+   * print as the underlying value rather than {@code Optional[…]}.
+   *
+   * <p>The implementation walks {@link Class#getRecordComponents()} so it stays correct
+   * automatically as the record evolves.
    */
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder();
-    priceCents.ifPresent(c -> sb.append('$').append(c / 100).append(" — "));
-    sb.append(title);
-    location.ifPresent(l -> sb.append(" (").append(l).append(')'));
-    sb.append(" — ").append(url);
-    return sb.toString();
+    StringJoiner joiner = new StringJoiner(", ", "Listing[", "]");
+    for (RecordComponent component : Listing.class.getRecordComponents()) {
+      Object value;
+      try {
+        value = component.getAccessor().invoke(this);
+      } catch (ReflectiveOperationException e) {
+        // Component accessors are public; this shouldn't happen unless the JVM is misconfigured.
+        throw new IllegalStateException(
+            "failed to read record component " + component.getName(), e);
+      }
+      if (value instanceof Optional<?> opt) {
+        if (opt.isEmpty()) {
+          continue;
+        }
+        value = opt.get();
+      } else if (value instanceof OptionalInt oi) {
+        if (oi.isEmpty()) {
+          continue;
+        }
+        value = oi.getAsInt();
+      } else if (value instanceof Map<?, ?> map && map.isEmpty()) {
+        continue;
+      }
+      joiner.add(component.getName() + "=" + value);
+    }
+    return joiner.toString();
   }
 
   public Builder toBuilder() {

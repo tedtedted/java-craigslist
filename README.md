@@ -39,7 +39,9 @@ CraigslistHousing housing = CraigslistHousing.builder(cl)
     .build();
 
 for (Listing l : housing) {
-    System.out.println(l);  // Listing.toString() renders as: $2400 — Sunny 1BR (Mission) — https://…
+    System.out.println(l);
+    // Listing[id=…, title=Sunny 1BR, url=…, priceCents=240000, location=Mission, hasImage=true]
+    // (empty Optionals/maps are automatically omitted)
 }
 ```
 
