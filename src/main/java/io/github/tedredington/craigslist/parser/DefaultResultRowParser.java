@@ -24,6 +24,9 @@ public class DefaultResultRowParser implements ResultRowParser {
       "li.cl-search-result, li.cl-static-search-result";
   private static final String LEGACY_ROW_SELECTOR = "li.result-row";
   private static final Pattern PRICE_PATTERN = Pattern.compile("\\$?([\\d,]+)");
+  // Extracts the listing id from a posting URL path like
+  // .../d/san-francisco-foo-bar/7936350978.html → "7936350978".
+  private static final Pattern ID_FROM_URL_PATTERN = Pattern.compile("/(\\d+)\\.html");
 
   @Override
   public Elements selectRows(Document doc) {
@@ -41,9 +44,6 @@ public class DefaultResultRowParser implements ResultRowParser {
   public Listing parseRow(Element row) {
     Listing.Builder b = Listing.builder();
 
-    String id = firstNonEmpty(row.attr("data-pid"), row.id());
-    b.id(id);
-
     Element titleAnchor =
         firstNonNull(
             row.selectFirst("a.posting-title"),
@@ -51,9 +51,21 @@ public class DefaultResultRowParser implements ResultRowParser {
             row.selectFirst("a.cl-app-anchor"),
             row.selectFirst("a.result-title"),
             row.selectFirst("a"));
+    String href = "";
     if (titleAnchor != null) {
-      b.title(titleAnchor.text().trim());
-      String href = titleAnchor.attr("abs:href");
+      // Prefer the post title (e.g. <span class="label">) over the anchor's full text,
+      // which on the modern static layout swallows the surrounding meta.
+      String anchorText = titleAnchor.text().trim();
+      Element titleLabel =
+          firstNonNull(titleAnchor.selectFirst("span.label"), titleAnchor.selectFirst(".title"));
+      if (titleLabel != null && !titleLabel.text().isBlank()) {
+        anchorText = titleLabel.text().trim();
+      } else if (anchorText.isEmpty() || anchorText.equals(row.attr("title"))) {
+        // fall back to the row's title attribute when the anchor has no visible text
+        anchorText = row.attr("title").trim();
+      }
+      b.title(anchorText);
+      href = titleAnchor.attr("abs:href");
       if (href.isEmpty()) {
         href = titleAnchor.attr("href");
       }
@@ -65,6 +77,10 @@ public class DefaultResultRowParser implements ResultRowParser {
         }
       }
     }
+    // The modern static layout doesn't set data-pid on the <li>; derive id from the URL
+    // (e.g. .../7936350978.html → "7936350978").
+    String id = firstNonEmpty(row.attr("data-pid"), row.id(), idFromUrl(href));
+    b.id(id);
 
     Element timeEl = row.selectFirst("time[datetime]");
     if (timeEl != null) {
@@ -134,6 +150,14 @@ public class DefaultResultRowParser implements ResultRowParser {
       }
     }
     return -1;
+  }
+
+  private static String idFromUrl(String url) {
+    if (url == null || url.isEmpty()) {
+      return "";
+    }
+    Matcher m = ID_FROM_URL_PATTERN.matcher(url);
+    return m.find() ? m.group(1) : "";
   }
 
   protected static Element firstNonNull(Element... candidates) {

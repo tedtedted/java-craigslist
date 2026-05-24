@@ -41,6 +41,19 @@ class DefaultResultRowParserTest {
   }
 
   @Test
+  void derivesIdFromUrlWhenDataPidMissing() throws Exception {
+    Document doc = loadFixture("housing/page-modern-static.html");
+    List<Listing> listings = parser.selectRows(doc).stream().map(parser::parseRow).toList();
+    assertThat(listings).hasSize(2);
+    assertThat(listings).extracting(Listing::id).containsExactly("7700000001", "7700000002");
+    assertThat(listings)
+        .extracting(Listing::title)
+        .containsExactly("Sunny 1BR in Mission", "Cozy Studio Downtown");
+    assertThat(listings.get(0).priceCents()).hasValue(240_000);
+    assertThat(listings.get(0).location()).contains("Mission District");
+  }
+
+  @Test
   void detectsNoImageWhenAbsent() throws Exception {
     Document doc = loadFixture("housing/page-0.html");
     List<Listing> listings = parser.selectRows(doc).stream().map(parser::parseRow).toList();
