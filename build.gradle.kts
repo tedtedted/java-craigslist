@@ -19,8 +19,8 @@ java {
 
 sourceSets {
     create("examples") {
-        java.srcDir("src/examples/java")
-        resources.srcDir("src/examples/resources")
+        // src/examples/java and src/examples/resources are picked up automatically
+        // by Gradle's source-set conventions.
         compileClasspath += sourceSets.main.get().output
         runtimeClasspath += sourceSets.main.get().output
     }
