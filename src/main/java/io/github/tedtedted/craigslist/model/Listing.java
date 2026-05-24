@@ -47,6 +47,21 @@ public record Listing(
     return new Builder();
   }
 
+  /**
+   * Compact, human-readable rendering suitable for {@code System.out.println}. Optional fields
+   * (price, location) are elided when absent. Use the record accessors directly when you need
+   * structured data.
+   */
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder();
+    priceCents.ifPresent(c -> sb.append('$').append(c / 100).append(" — "));
+    sb.append(title);
+    location.ifPresent(l -> sb.append(" (").append(l).append(')'));
+    sb.append(" — ").append(url);
+    return sb.toString();
+  }
+
   public Builder toBuilder() {
     return new Builder()
         .id(id)

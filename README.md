@@ -39,7 +39,7 @@ CraigslistHousing housing = CraigslistHousing.builder(cl)
     .build();
 
 for (Listing l : housing) {
-    System.out.println(l.title() + " — " + l.url());
+    System.out.println(l);  // Listing.toString() renders as: $2400 — Sunny 1BR (Mission) — https://…
 }
 ```
 

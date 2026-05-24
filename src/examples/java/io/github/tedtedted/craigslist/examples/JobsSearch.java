@@ -19,7 +19,7 @@ public final class JobsSearch {
           .build()
           .stream()
           .limit(10)
-          .forEach(l -> System.out.println(l.title() + " — " + l.url()));
+          .forEach(System.out::println);
     }
   }
 

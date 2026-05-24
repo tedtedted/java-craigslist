@@ -3,7 +3,6 @@ package io.github.tedtedted.craigslist.examples;
 import io.github.tedtedted.craigslist.Craigslist;
 import io.github.tedtedted.craigslist.CraigslistForSale;
 import io.github.tedtedted.craigslist.model.ForSaleCategory;
-import io.github.tedtedted.craigslist.model.Listing;
 import io.github.tedtedted.craigslist.model.Site;
 
 /**
@@ -28,20 +27,8 @@ public final class GibsonGuitarSearch {
       System.out.println("URL: " + search.uriForOffset(0));
       System.out.println("Approx total: " + search.approximateCount());
       System.out.println();
-      search.stream().limit(25).forEach(GibsonGuitarSearch::print);
+      search.stream().limit(25).forEach(System.out::println);
     }
-  }
-
-  private static void print(Listing l) {
-    System.out.printf(
-        "%-8s | %-50s | %s%n",
-        l.priceCents().isPresent() ? "$" + l.priceCents().getAsInt() / 100 : "?",
-        truncate(l.title(), 50),
-        l.url());
-  }
-
-  private static String truncate(String s, int max) {
-    return s.length() <= max ? s : s.substring(0, max - 1) + "…";
   }
 
   private GibsonGuitarSearch() {}
