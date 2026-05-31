@@ -1,6 +1,5 @@
 package io.github.tedtedted.craigslist.model;
 
-import java.lang.reflect.RecordComponent;
 import java.net.URI;
 import java.time.OffsetDateTime;
 import java.util.LinkedHashMap;
@@ -52,40 +51,28 @@ public record Listing(
   /**
    * Renders this listing in the standard Java record format ({@code Listing[name=value, …]}) but
    * omits components whose value is an empty {@link Optional}, an empty {@link OptionalInt}, or an
-   * empty {@link Map}, and unwraps present {@code Optional}/{@code OptionalInt} values so they
-   * print as the underlying value rather than {@code Optional[…]}.
-   *
-   * <p>The implementation walks {@link Class#getRecordComponents()} so it stays correct
-   * automatically as the record evolves.
+   * empty {@link Map}, and unwraps present {@code Optional}/{@code OptionalInt} values.
    */
   @Override
   public String toString() {
     StringJoiner joiner = new StringJoiner(", ", "Listing[", "]");
-    for (RecordComponent component : Listing.class.getRecordComponents()) {
-      Object value;
-      try {
-        value = component.getAccessor().invoke(this);
-      } catch (ReflectiveOperationException e) {
-        // Component accessors are public; this shouldn't happen unless the JVM is misconfigured.
-        throw new IllegalStateException(
-            "failed to read record component " + component.getName(), e);
-      }
-      if (value instanceof Optional<?> opt) {
-        if (opt.isEmpty()) {
-          continue;
-        }
-        value = opt.get();
-      } else if (value instanceof OptionalInt oi) {
-        if (oi.isEmpty()) {
-          continue;
-        }
-        value = oi.getAsInt();
-      } else if (value instanceof Map<?, ?> map && map.isEmpty()) {
-        continue;
-      }
-      joiner.add(component.getName() + "=" + value);
+    add(joiner, "id", id);
+    add(joiner, "title", title);
+    add(joiner, "url", url);
+    datetimePosted.ifPresent(v -> add(joiner, "datetimePosted", v));
+    priceCents.ifPresent(v -> add(joiner, "priceCents", v));
+    location.ifPresent(v -> add(joiner, "location", v));
+    add(joiner, "hasImage", hasImage);
+    geotag.ifPresent(v -> add(joiner, "geotag", v));
+    if (!customFields.isEmpty()) {
+      add(joiner, "customFields", customFields);
     }
+    body.ifPresent(v -> add(joiner, "body", v));
     return joiner.toString();
+  }
+
+  private static void add(StringJoiner joiner, String name, Object value) {
+    joiner.add(name + "=" + value);
   }
 
   public Builder toBuilder() {
