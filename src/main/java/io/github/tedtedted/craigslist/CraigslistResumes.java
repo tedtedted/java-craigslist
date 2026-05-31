@@ -56,6 +56,7 @@ public final class CraigslistResumes extends CraigslistBase {
     @Override
     public CraigslistResumes build() {
       validateBase();
+      List<QueryParam> params = baseParams();
       if (employmentTypes != null) {
         for (EmploymentType t : employmentTypes) {
           params.add(new QueryParam(FilterKeys.EMPLOYMENT_TYPE, t.urlValue()));

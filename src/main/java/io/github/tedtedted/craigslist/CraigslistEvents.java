@@ -48,7 +48,7 @@ public final class CraigslistEvents extends CraigslistBase {
     @Override
     public CraigslistEvents build() {
       validateBase();
-      return new CraigslistEvents(client, site, area, category, List.copyOf(params));
+      return new CraigslistEvents(client, site, area, category, List.copyOf(baseParams()));
     }
   }
 }

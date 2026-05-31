@@ -88,4 +88,35 @@ class CraigslistHousingBuilderTest {
         .contains("max_price=3000")
         .contains("hasPic=1");
   }
+
+  @Test
+  void buildCanBeCalledRepeatedlyWithoutDuplicatingParams() {
+    CraigslistHousing.Builder builder =
+        CraigslistHousing.builder(client)
+            .site(Site.SF_BAY)
+            .query("studio")
+            .minPrice(1500)
+            .maxPrice(3000)
+            .hasImage(true);
+
+    CraigslistHousing first = builder.build();
+    CraigslistHousing second = builder.build();
+
+    assertThat(second.uriForOffset(0)).isEqualTo(first.uriForOffset(0));
+    String url = second.uriForOffset(0).toString();
+    assertThat(occurrences(url, "query=studio")).isEqualTo(1);
+    assertThat(occurrences(url, "min_price=1500")).isEqualTo(1);
+    assertThat(occurrences(url, "max_price=3000")).isEqualTo(1);
+    assertThat(occurrences(url, "hasPic=1")).isEqualTo(1);
+  }
+
+  private static int occurrences(String value, String needle) {
+    int count = 0;
+    int index = 0;
+    while ((index = value.indexOf(needle, index)) >= 0) {
+      count++;
+      index += needle.length();
+    }
+    return count;
+  }
 }

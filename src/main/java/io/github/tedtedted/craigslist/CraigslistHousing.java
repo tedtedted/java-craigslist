@@ -184,6 +184,7 @@ public final class CraigslistHousing extends CraigslistBase {
       validateRange("bathrooms", minBathrooms, maxBathrooms);
       validateRange("sqft", minSqft, maxSqft);
 
+      List<QueryParam> params = baseParams();
       if (minPrice != null) params.add(qp(FilterKeys.MIN_PRICE, minPrice));
       if (maxPrice != null) params.add(qp(FilterKeys.MAX_PRICE, maxPrice));
       if (minBedrooms != null) params.add(qp(FilterKeys.MIN_BEDROOMS, minBedrooms));

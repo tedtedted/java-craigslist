@@ -90,6 +90,7 @@ public final class CraigslistForSale extends CraigslistBase {
         throw new InvalidFilterException(
             "price", minPrice + ".." + maxPrice, "minPrice must be <= maxPrice");
       }
+      List<QueryParam> params = baseParams();
       if (minPrice != null)
         params.add(new QueryParam(FilterKeys.MIN_PRICE, Integer.toString(minPrice)));
       if (maxPrice != null)

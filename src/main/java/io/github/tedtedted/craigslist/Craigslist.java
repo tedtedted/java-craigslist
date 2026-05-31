@@ -40,11 +40,14 @@ public final class Craigslist implements AutoCloseable {
   private final HttpClient httpClient;
   private final HttpFetcher fetcher;
   private final UriBuilder uriBuilder;
+  private final boolean ownsHttpClient;
 
-  private Craigslist(HttpClient httpClient, HttpFetcher fetcher, UriBuilder uriBuilder) {
+  private Craigslist(
+      HttpClient httpClient, HttpFetcher fetcher, UriBuilder uriBuilder, boolean ownsHttpClient) {
     this.httpClient = httpClient;
     this.fetcher = fetcher;
     this.uriBuilder = uriBuilder;
+    this.ownsHttpClient = ownsHttpClient;
   }
 
   /** Create a {@code Craigslist} client with sensible defaults. */
@@ -58,19 +61,23 @@ public final class Craigslist implements AutoCloseable {
   }
 
   /** Internal — used by category subclasses. */
-  public HttpFetcher fetcher() {
+  HttpFetcher fetcher() {
     return fetcher;
   }
 
   /** Internal — used by category subclasses. */
-  public UriBuilder uriBuilder() {
+  UriBuilder uriBuilder() {
     return uriBuilder;
   }
 
   @Override
   public void close() {
-    LOG.info("closing Craigslist client and releasing HttpClient");
-    httpClient.close();
+    if (ownsHttpClient) {
+      LOG.info("closing Craigslist client and releasing owned HttpClient");
+      httpClient.close();
+    } else {
+      LOG.info("closing Craigslist client without closing caller-supplied HttpClient");
+    }
   }
 
   /** Configures HTTP behavior for a {@link Craigslist} instance. */
@@ -137,10 +144,11 @@ public final class Craigslist implements AutoCloseable {
     }
 
     public Craigslist build() {
+      boolean ownsHttpClient = httpClient == null;
       HttpClient client =
-          (httpClient != null)
-              ? httpClient
-              : HttpClient.newBuilder().connectTimeout(connectTimeout).build();
+          ownsHttpClient
+              ? HttpClient.newBuilder().connectTimeout(connectTimeout).build()
+              : httpClient;
       HttpFetcher fetcher =
           new HttpFetcher(
               client,
@@ -157,7 +165,7 @@ public final class Craigslist implements AutoCloseable {
           retryPolicy.maxAttempts(),
           minDelayBetweenRequests,
           baseUriOverride);
-      return new Craigslist(client, fetcher, uriBuilder);
+      return new Craigslist(client, fetcher, uriBuilder, ownsHttpClient);
     }
   }
 }

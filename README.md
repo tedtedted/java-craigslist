@@ -129,8 +129,8 @@ produces zero elements.
 | Class | Default category | Notable filters |
 |---|---|---|
 | `CraigslistCommunity` | `ccc` | (base only) |
-| `CraigslistEvents` | `eee` | `eventCategory`, `dateRange` |
-| `CraigslistForSale` | `sss` | `minPrice`, `maxPrice`, `condition`, `make`, `model` |
+| `CraigslistEvents` | `eee` | `category` |
+| `CraigslistForSale` | `sss` | `minPrice`, `maxPrice`, `condition`, `make` |
 | `CraigslistGigs` | `ggg` | `isPaid` |
 | `CraigslistHousing` | `hhh` | `minPrice`, `maxPrice`, bedrooms, bathrooms, sqft, `pets`, `laundry`, `parking`, … |
 | `CraigslistJobs` | `jjj` | `employmentType`, `internship`, `telecommute` |

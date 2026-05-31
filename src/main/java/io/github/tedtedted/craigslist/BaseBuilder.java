@@ -21,7 +21,13 @@ public abstract class BaseBuilder<S extends CraigslistBase, B extends BaseBuilde
   protected final Craigslist client;
   protected Site site;
   protected Area area;
-  protected final List<QueryParam> params = new ArrayList<>();
+  private String query;
+  private boolean searchTitlesOnly;
+  private boolean hasImage;
+  private boolean postedToday;
+  private boolean bundleDuplicates;
+  private Integer searchDistanceMiles;
+  private String zipCode;
 
   protected BaseBuilder(Craigslist client) {
     if (client == null) {
@@ -49,41 +55,31 @@ public abstract class BaseBuilder<S extends CraigslistBase, B extends BaseBuilde
 
   /** Free-text search query. */
   public B query(String q) {
-    if (q != null && !q.isBlank()) {
-      params.add(new QueryParam(FilterKeys.QUERY, q));
-    }
+    this.query = (q == null || q.isBlank()) ? null : q;
     return self();
   }
 
   /** When {@code true}, search only post titles (not bodies). */
   public B searchTitlesOnly(boolean v) {
-    if (v) {
-      params.add(new QueryParam(FilterKeys.SEARCH_TITLES, "T"));
-    }
+    this.searchTitlesOnly = v;
     return self();
   }
 
   /** Limit to listings that include at least one image. */
   public B hasImage(boolean v) {
-    if (v) {
-      params.add(new QueryParam(FilterKeys.HAS_IMAGE, "1"));
-    }
+    this.hasImage = v;
     return self();
   }
 
   /** Limit to listings posted today. */
   public B postedToday(boolean v) {
-    if (v) {
-      params.add(new QueryParam(FilterKeys.POSTED_TODAY, "1"));
-    }
+    this.postedToday = v;
     return self();
   }
 
   /** Bundle duplicate listings into a single result. */
   public B bundleDuplicates(boolean v) {
-    if (v) {
-      params.add(new QueryParam(FilterKeys.BUNDLE_DUPLICATES, "1"));
-    }
+    this.bundleDuplicates = v;
     return self();
   }
 
@@ -92,15 +88,13 @@ public abstract class BaseBuilder<S extends CraigslistBase, B extends BaseBuilde
     if (miles < 0) {
       throw new InvalidFilterException("searchDistanceMiles", miles, "must be >= 0");
     }
-    params.add(new QueryParam(FilterKeys.SEARCH_DISTANCE, String.valueOf(miles)));
+    this.searchDistanceMiles = miles;
     return self();
   }
 
   /** Center point for {@link #searchDistanceMiles(int)}. */
   public B zipCode(String zip) {
-    if (zip != null && !zip.isBlank()) {
-      params.add(new QueryParam(FilterKeys.ZIP_CODE, zip.trim()));
-    }
+    this.zipCode = (zip == null || zip.isBlank()) ? null : zip.trim();
     return self();
   }
 
@@ -113,6 +107,33 @@ public abstract class BaseBuilder<S extends CraigslistBase, B extends BaseBuilde
       throw new InvalidFilterException(
           "area", area, "area " + area + " belongs to " + area.site() + ", not " + site);
     }
+  }
+
+  /** Returns a fresh, mutable list of common query parameters for each {@link #build()} call. */
+  protected final List<QueryParam> baseParams() {
+    List<QueryParam> params = new ArrayList<>();
+    if (query != null) {
+      params.add(new QueryParam(FilterKeys.QUERY, query));
+    }
+    if (searchTitlesOnly) {
+      params.add(new QueryParam(FilterKeys.SEARCH_TITLES, "T"));
+    }
+    if (hasImage) {
+      params.add(new QueryParam(FilterKeys.HAS_IMAGE, "1"));
+    }
+    if (postedToday) {
+      params.add(new QueryParam(FilterKeys.POSTED_TODAY, "1"));
+    }
+    if (bundleDuplicates) {
+      params.add(new QueryParam(FilterKeys.BUNDLE_DUPLICATES, "1"));
+    }
+    if (searchDistanceMiles != null) {
+      params.add(new QueryParam(FilterKeys.SEARCH_DISTANCE, String.valueOf(searchDistanceMiles)));
+    }
+    if (zipCode != null) {
+      params.add(new QueryParam(FilterKeys.ZIP_CODE, zipCode));
+    }
+    return params;
   }
 
   /** Builds the concrete query. */

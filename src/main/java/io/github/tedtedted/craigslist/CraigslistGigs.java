@@ -56,6 +56,7 @@ public final class CraigslistGigs extends CraigslistBase {
     @Override
     public CraigslistGigs build() {
       validateBase();
+      List<QueryParam> params = baseParams();
       if (isPaid != null) {
         params.add(new QueryParam(FilterKeys.IS_PAID, isPaid ? "1" : "0"));
       }

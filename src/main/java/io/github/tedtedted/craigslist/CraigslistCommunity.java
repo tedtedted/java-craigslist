@@ -48,7 +48,7 @@ public final class CraigslistCommunity extends CraigslistBase {
     @Override
     public CraigslistCommunity build() {
       validateBase();
-      return new CraigslistCommunity(client, site, area, category, List.copyOf(params));
+      return new CraigslistCommunity(client, site, area, category, List.copyOf(baseParams()));
     }
   }
 }
